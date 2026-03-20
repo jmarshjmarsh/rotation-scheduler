@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Residency Rotation Scheduler</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Residency Rotation Scheduler</h1>
+    <div class="subtitle">Anesthesia Residency Program</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="header-controls">
+    <div class="year-selector">
+      <label>Academic Year:</label>
+      <select id="yearSelect"></select>
+    </div>
+    <button class="hdr-btn" onclick="exportData()">Export JSON</button>
+    <label class="hdr-btn">Import JSON<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('rotations',this)">Weekly Rotations</button>
+  <button class="tab-btn" onclick="switchTab('daily',this)">Daily Rotations</button>
+  <button class="tab-btn" onclick="switchTab('settings',this)">Settings</button>
+</div>
+
+<div class="main">
+
+  <!-- ══ WEEKLY ROTATIONS ══ -->
+  <div id="tab-rotations" class="tab-panel active">
+    <div class="toolbar">
+      <span class="info-chip">Rows = rotations &nbsp;·&nbsp; Columns = weeks &nbsp;·&nbsp; Click a cell to assign a resident</span>
+    </div>
+    <div class="sched-wrap">
+      <table class="sched-table">
+        <thead id="rotHead"></thead>
+        <tbody id="rotBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ DAILY ROTATIONS ══ -->
+  <div id="tab-daily" class="tab-panel">
+    <div class="toolbar">
+      <span class="info-chip">Rows = rotations &nbsp;·&nbsp; Columns = individual days &nbsp;·&nbsp; Bold border = start of week &nbsp;·&nbsp; Click a cell to assign a resident</span>
+    </div>
+    <div class="sched-wrap">
+      <table class="sched-table">
+        <thead id="dailyHead"></thead>
+        <tbody id="dailyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS ══ -->
+  <div id="tab-settings" class="tab-panel">
+
+    <div class="settings-panel">
+      <h3>Residents</h3>
+      <div class="tag-list" id="residentsList"></div>
+      <div class="add-row">
+        <input type="text" id="newResidentInput" placeholder="Resident name…" onkeydown="if(event.key==='Enter')addResident()">
+        <select id="newResidentClass">
+          <option value="Intern">Intern</option>
+          <option value="CA-1">CA-1</option>
+          <option value="CA-2">CA-2</option>
+          <option value="CA-3">CA-3</option>
+          <option value="CA-4">CA-4</option>
+        </select>
+        <button class="btn btn-primary" onclick="addResident()">Add</button>
+      </div>
+    </div>
+
+    <div class="settings-panel">
+      <h3>Rotation Rows</h3>
+      <p style="font-size:11px;color:var(--text-muted);margin-bottom:10px">These rows appear in both schedule tabs, in this order. Duplicate names are allowed.</p>
+      <div class="tag-list" id="rotationsList"></div>
+      <div class="add-row">
+        <input type="text" id="newRotationInput" placeholder="Rotation name…" onkeydown="if(event.key==='Enter')addRotation()">
+        <button class="btn btn-primary" onclick="addRotation()">Add</button>
+      </div>
+    </div>
+
+    <div class="settings-panel">
+      <h3>Color Rules</h3>
+      <div class="color-legend" style="margin-bottom:10px">
+        <div class="legend-item"><div class="legend-swatch" style="background:#d1d5db"></div> Grey — requires attention <em style="font-size:10px">(overrides yellow &amp; blue)</em></div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#fef08a"></div> Yellow — busy rotation</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#bfdbfe"></div> Blue — no first-time rotators</div>
+      </div>
+      <div class="rule-list" id="colorRulesList"></div>
+      <button class="btn" onclick="toggleAddRuleForm()" id="addRuleToggleBtn">+ Add Rule</button>
+
+      <div class="add-rule-form" id="addRuleForm">
+        <div class="form-grid">
+          <label>Color</label>
+          <select id="ruleColor">
+            <option value="grey">Grey – requires attention</option>
+            <option value="yellow">Yellow – busy rotation</option>
+            <option value="blue">Blue – no first-time rotators</option>
+          </select>
+
+          <label>Label</label>
+          <input type="text" id="ruleLabel" placeholder="e.g. Thanksgiving week">
+
+          <label>Date range <small style="display:block;opacity:.7">(leave blank = all dates)</small></label>
+          <div class="date-range-row">
+            <input type="date" id="ruleStart">
+            <span style="font-size:11px;color:var(--text-muted)">to</span>
+            <input type="date" id="ruleEnd">
+          </div>
+
+          <label>Applies to</label>
+          <div>
+            <label style="font-size:12px;cursor:pointer">
+              <input type="checkbox" id="ruleAllRows" checked onchange="toggleAllRowsCheck(this)"> All rows
+            </label>
+            <div class="row-checks" id="ruleRowChecks" style="display:none;margin-top:6px"></div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveColorRule()">Save Rule</button>
+          <button class="btn" onclick="toggleAddRuleForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-panel">
+      <h3>Conferences</h3>
+      <div class="conf-list" id="conferenceList"></div>
+      <div class="add-rule-form" id="addConfForm" style="margin-bottom:10px">
+        <div class="form-grid">
+          <label>Name</label>
+          <input type="text" id="confName" placeholder="e.g. ASA Annual Meeting">
+          <label>Start date</label>
+          <input type="date" id="confStart">
+          <label>End date <small style="display:block;opacity:.7">(optional)</small></label>
+          <input type="date" id="confEnd">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveConference()">Save Conference</button>
+          <button class="btn" onclick="toggleAddConfForm()">Cancel</button>
+        </div>
+      </div>
+      <button class="btn" onclick="toggleAddConfForm()" id="addConfToggleBtn">+ Add Conference</button>
+    </div>
+
+    <div class="settings-panel" style="border-color:#f5c6c2;background:#fdecea">
+      <h3 style="color:#c0392b">Danger Zone</h3>
+      <p style="font-size:12px;color:#c0392b;margin-bottom:10px">Clear all rotation assignments (both weekly and daily). Cannot be undone.</p>
+      <button class="btn btn-danger" onclick="clearAll()">Clear All Assignments</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ CELL PICKER ══ -->
+<div id="cellPicker">
+  <div class="picker-header" id="pickerHeader"></div>
+  <div id="pickerList"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
