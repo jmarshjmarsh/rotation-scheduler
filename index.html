@@ -19,6 +19,7 @@
       <label>Academic Year:</label>
       <select id="yearSelect"></select>
     </div>
+    <button class="hdr-btn" id="cloudSaveBtn" onclick="cloudSave()">Save</button>
     <button class="hdr-btn" onclick="exportData()">Export JSON</button>
     <label class="hdr-btn">Import JSON<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
   </div>
@@ -167,5 +168,6 @@
 </div>
 
 <script src="app.js"></script>
+<script type="module" src="firebase.js"></script>
 </body>
 </html>

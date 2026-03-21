@@ -6,7 +6,7 @@ const CLASS_ORDER = ["Intern", "CA-1", "CA-2", "CA-3", "CA-4"];
 // ══════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════
-let state = {
+var state = {
   academicYearStart: 2026,
   rotations: [
     "Gen, Neuro, NORA",
