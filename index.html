@@ -37,11 +37,7 @@
   <div id="tab-rotations" class="tab-panel active">
     <div class="toolbar">
       <span class="info-chip">Rows = rotations &nbsp;·&nbsp; Columns = weeks &nbsp;·&nbsp; Click a cell to assign a resident</span>
-      <div class="color-legend" style="margin-bottom:0">
-        <div class="legend-item"><div class="legend-swatch" style="background:#d1d5db"></div> requires attention</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#fef08a"></div> busy rotation</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#bfdbfe"></div> no first-time rotators</div>
-      </div>
+      <div class="color-legend color-legend-simple" style="margin-bottom:0"></div>
     </div>
     <div class="sched-wrap">
       <table class="sched-table">
@@ -55,11 +51,7 @@
   <div id="tab-daily" class="tab-panel">
     <div class="toolbar">
       <span class="info-chip">Rows = rotations &nbsp;·&nbsp; Columns = individual days &nbsp;·&nbsp; Bold border = start of week &nbsp;·&nbsp; Click a cell to assign a resident</span>
-      <div class="color-legend" style="margin-bottom:0">
-        <div class="legend-item"><div class="legend-swatch" style="background:#d1d5db"></div> requires attention</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#fef08a"></div> busy rotation</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#bfdbfe"></div> no first-time rotators</div>
-      </div>
+      <div class="color-legend color-legend-simple" style="margin-bottom:0"></div>
     </div>
     <div class="sched-wrap">
       <table class="sched-table">
@@ -100,11 +92,7 @@
 
     <div class="settings-panel">
       <h3>Color Rules</h3>
-      <div class="color-legend" style="margin-bottom:10px">
-        <div class="legend-item"><div class="legend-swatch" style="background:#d1d5db"></div> Grey — requires attention <em style="font-size:10px">(overrides yellow &amp; blue)</em></div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#fef08a"></div> Yellow — busy rotation</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#bfdbfe"></div> Blue — no first-time rotators</div>
-      </div>
+      <div class="color-legend" id="colorLegend-settings" style="margin-bottom:10px"></div>
       <div class="rule-list" id="colorRulesList"></div>
       <button class="btn" onclick="toggleAddRuleForm()" id="addRuleToggleBtn">+ Add Rule</button>
 
@@ -112,9 +100,9 @@
         <div class="form-grid">
           <label>Color</label>
           <select id="ruleColor">
-            <option value="grey">Grey – requires attention</option>
-            <option value="yellow">Yellow – busy rotation</option>
-            <option value="blue">Blue – no first-time rotators</option>
+            <option value="grey">Grey</option>
+            <option value="yellow">Yellow</option>
+            <option value="blue">Blue</option>
           </select>
 
           <label>Label</label>

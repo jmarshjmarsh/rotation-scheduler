@@ -8,6 +8,11 @@ const CLASS_ORDER = ["CA-4", "CA-3", "CA-2", "CA-1", "Intern"];
 // ══════════════════════════════════════════════════════
 var state = {
   academicYearStart: 2026,
+  colorNames: {
+    grey:   'requires attention',
+    yellow: 'busy rotation',
+    blue:   'no first-time rotators'
+  },
   rotations: [
     "Gen, Neuro, NORA",
     "Gen, Neuro, NORA",
@@ -126,6 +131,13 @@ function loadState() {
 
   // Ensure conferences array exists
   if (!state.conferences) state.conferences = [];
+
+  // Ensure colorNames object exists
+  if (!state.colorNames) state.colorNames = {
+    grey:   'requires attention',
+    yellow: 'busy rotation',
+    blue:   'no first-time rotators'
+  };
 }
 function exportData() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -295,6 +307,59 @@ function renderColorRulesList() {
   }).join('');
 }
 
+function renderColorLegends() {
+  const colors = [
+    { key: 'grey',   bg: '#d1d5db' },
+    { key: 'yellow', bg: '#fef08a' },
+    { key: 'blue',   bg: '#bfdbfe' }
+  ];
+  const names = state.colorNames || {};
+
+  // Simple legend for schedule tabs
+  const simpleHtml = colors.map(c =>
+    `<div class="legend-item"><div class="legend-swatch" style="background:${c.bg}"></div> ${names[c.key] || c.key}</div>`
+  ).join('');
+  document.querySelectorAll('.color-legend-simple').forEach(el => { el.innerHTML = simpleHtml; });
+
+  // Editable legend for settings panel
+  const settingsEl = document.getElementById('colorLegend-settings');
+  if (settingsEl) {
+    settingsEl.innerHTML = colors.map((c, i) =>
+      `<div class="legend-item">
+        <div class="legend-swatch" style="background:${c.bg}"></div>
+        <span class="legend-color-label">${c.key.charAt(0).toUpperCase() + c.key.slice(1)} —</span>
+        <input class="legend-name-input" type="text" value="${names[c.key] || ''}" onblur="saveColorName('${c.key}', this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border:none;border-bottom:1px solid #ccc;background:transparent;font-size:11px;color:var(--text-muted);width:160px;outline:none;padding:0 2px">
+        ${i === 0 ? '<em style="font-size:10px">(overrides yellow &amp; blue)</em>' : ''}
+      </div>`
+    ).join('');
+  }
+}
+
+function saveColorName(color, val) {
+  val = val.trim();
+  if (!val) return;
+  if (!state.colorNames) state.colorNames = {};
+  state.colorNames[color] = val;
+  saveState();
+  renderColorLegends();
+  // Also refresh the rule form dropdown if open
+  const colorSel = document.getElementById('ruleColor');
+  if (colorSel) updateRuleColorOptions();
+}
+
+function updateRuleColorOptions() {
+  const names = state.colorNames || {};
+  const sel = document.getElementById('ruleColor');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `
+    <option value="grey">Grey – ${names.grey || 'requires attention'}</option>
+    <option value="yellow">Yellow – ${names.yellow || 'busy rotation'}</option>
+    <option value="blue">Blue – ${names.blue || 'no first-time rotators'}</option>
+  `;
+  sel.value = current;
+}
+
 function toggleAddRuleForm(ruleToEdit) {
   const form = document.getElementById('addRuleForm');
   const btn  = document.getElementById('addRuleToggleBtn');
@@ -315,6 +380,7 @@ function toggleAddRuleForm(ruleToEdit) {
   }
   btn.textContent = open ? '✕ Cancel' : '+ Add Rule';
   if (open) {
+    updateRuleColorOptions();
     // Populate row checkboxes
     const checks = document.getElementById('ruleRowChecks');
     checks.innerHTML = state.rotations.map((r, i) =>
@@ -778,6 +844,7 @@ function switchTab(name, btn) {
     renderResidentsList();
     renderRotationsList();
     renderColorRulesList();
+    renderColorLegends();
     renderConferenceList();
   }
 }
@@ -940,6 +1007,7 @@ function reorderRotations(from, to) {
 // ══════════════════════════════════════════════════════
 function initAll() {
   buildYearSelector();
+  renderColorLegends();
   renderTable('weekly');
 }
 
