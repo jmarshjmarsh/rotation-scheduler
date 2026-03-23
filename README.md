@@ -4,7 +4,7 @@ An interactive anesthesia residency rotation scheduling tool built as a static w
 
 ## Usage
 
-Open `index.html` in any modern browser. All data is saved to browser localStorage.
+Open via the GitHub Pages URL or clone and open `index.html` locally. State auto-loads from Firestore on startup and can be saved back to the cloud with the Save button.
 
 ## Features
 
@@ -14,8 +14,13 @@ Open `index.html` in any modern browser. All data is saved to browser localStora
 - Color-coded cells (grey/yellow/blue) with configurable rules
 - Conference schedule overlay with sticky-note tabs above the calendar
 - Weekly → daily auto-population with manual override support
-- Export/import JSON for backup or cross-browser transfer
+- Firebase Firestore cloud sync — shared state across all users
+- Export/import JSON for backup
+
+## Stack
+
+Vanilla JS + HTML + CSS. No build step. Firebase Firestore for cloud sync, localStorage as local fallback.
 
 ## GitHub Pages
 
-This site is designed to be hosted as a GitHub Pages static site.
+Hosted as a GitHub Pages static site.
