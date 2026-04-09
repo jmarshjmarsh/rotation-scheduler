@@ -34,3 +34,10 @@ Color rule and conference dates stored as `MM-DD` (not full YYYY-MM-DD). Month â
 
 ## Academic year
 Default start: 2026 (July 6, 2026 = first Monday). Configurable via year selector in header.
+
+## Session close
+
+Before ending any dev session, update the project tracker:
+`/Users/jacob/Documents/Second Brain/1 Projects/Personal/Rotation Scheduler/project-tracker.md`
+
+Mark completed tasks, update status, note what was built.
