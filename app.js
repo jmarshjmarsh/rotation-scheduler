@@ -811,12 +811,14 @@ function applyPicker(name) {
 }
 
 function closePicker() {
-  document.getElementById('cellPicker').style.display = 'none';
+  const picker = document.getElementById('cellPicker');
+  if (picker) picker.style.display = 'none';
   pickerTarget = null;
 }
 
 // Picker option clicks — stop propagation so the outside-click handler never sees them
-document.getElementById('cellPicker').addEventListener('click', e => {
+const _picker = document.getElementById('cellPicker');
+if (_picker) _picker.addEventListener('click', e => {
   e.stopPropagation();
   const opt = e.target.closest('.picker-opt');
   if (opt) applyPicker(opt.dataset.value);

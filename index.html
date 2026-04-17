@@ -5,8 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Residency Rotation Scheduler</title>
 <link rel="stylesheet" href="style.css">
+<style>
+  #authOverlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #authBox {
+    background: white; border-radius: 10px; padding: 36px 40px;
+    text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.3); min-width: 280px;
+  }
+  #authBox h2 { color: var(--primary); font-size: 16px; margin-bottom: 6px; }
+  #authBox p { color: var(--text-muted); font-size: 12px; margin-bottom: 20px; }
+  #authInput {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 5px; font-size: 14px; margin-bottom: 12px; outline: none;
+    box-sizing: border-box;
+  }
+  #authInput:focus { border-color: var(--accent); }
+  #authBtn {
+    width: 100%; padding: 8px; background: var(--primary); color: white;
+    border: none; border-radius: 5px; font-size: 13px; cursor: pointer;
+  }
+  #authBtn:hover { background: var(--primary-light); }
+  #authError { color: #c0392b; font-size: 12px; margin-top: 8px; min-height: 16px; }
+</style>
 </head>
 <body>
+
+<div id="authOverlay">
+  <div id="authBox">
+    <h2>Residency Rotation Scheduler</h2>
+    <p>Chief residents only</p>
+    <input type="password" id="authInput" placeholder="Password" onkeydown="if(event.key==='Enter')checkAuth()">
+    <button id="authBtn" onclick="checkAuth()">Enter</button>
+    <div id="authError"></div>
+  </div>
+</div>
+<script>
+  (function() {
+    if (sessionStorage.getItem('rsSched_auth') === '1') {
+      document.getElementById('authOverlay').style.display = 'none';
+    }
+  })();
+  function checkAuth() {
+    if (document.getElementById('authInput').value === 'chiefsonly') {
+      sessionStorage.setItem('rsSched_auth', '1');
+      document.getElementById('authOverlay').style.display = 'none';
+    } else {
+      document.getElementById('authError').textContent = 'Incorrect password.';
+      document.getElementById('authInput').value = '';
+      document.getElementById('authInput').focus();
+    }
+  }
+</script>
 
 <header>
   <div>
