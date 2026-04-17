@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Residency Rotation Schedule — View</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .live-status {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .live-ok  { background: rgba(74,222,128,.2); color: #86efac; }
+  .live-err { background: rgba(248,113,113,.2); color: #fca5a5; }
+  .s-cell { cursor: default !important; }
+  .s-cell:hover { background: inherit !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Residency Rotation Scheduler</h1>
+    <div class="subtitle">Anesthesia Residency Program — View Only</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="header-controls">
+    <div class="year-selector">
+      <label>Academic Year:</label>
+      <select id="yearSelect"></select>
+    </div>
+    <span class="live-status live-err" id="liveStatus">Connecting…</span>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('rotations',this)">Weekly Rotations</button>
+  <button class="tab-btn" onclick="switchTab('daily',this)">Daily Rotations</button>
+</div>
+
+<div class="main">
+
+  <!-- ══ WEEKLY ROTATIONS ══ -->
+  <div id="tab-rotations" class="tab-panel active">
+    <div class="toolbar">
+      <span class="info-chip">Rows = rotations &nbsp;·&nbsp; Columns = weeks</span>
+      <div class="color-legend color-legend-simple" style="margin-bottom:0"></div>
+    </div>
+    <div class="sched-wrap">
+      <table class="sched-table">
+        <thead id="rotHead"></thead>
+        <tbody id="rotBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ DAILY ROTATIONS ══ -->
+  <div id="tab-daily" class="tab-panel">
+    <div class="toolbar">
+      <span class="info-chip">Rows = rotations &nbsp;·&nbsp; Columns = individual days &nbsp;·&nbsp; Bold border = start of week</span>
+      <div class="color-legend color-legend-simple" style="margin-bottom:0"></div>
+    </div>
+    <div class="sched-wrap">
+      <table class="sched-table">
+        <thead id="dailyHead"></thead>
+        <tbody id="dailyBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>window.VIEW_ONLY = true;</script>
+<script src="app.js"></script>
+<script type="module" src="view-firebase.js"></script>
+</body>
+</html>

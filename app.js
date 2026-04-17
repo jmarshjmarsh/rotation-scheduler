@@ -691,7 +691,8 @@ function renderTable(type) {
       const dateB = isWeekly ? c.friDate : dateA;
       const color = getCellColor(ri, dateA, dateB);
       const colorCls = color ? ` cell-${color}` : '';
-      bHtml += `<td class="s-cell${filledCls}${manualCls}${wsCls}${colorCls}" data-type="${type}" data-row="${ri}" data-col="${c.key}"${wkAttr} onclick="openPicker(this)">`;
+      const clickAttr = window.VIEW_ONLY ? '' : ' onclick="openPicker(this)"';
+      bHtml += `<td class="s-cell${filledCls}${manualCls}${wsCls}${colorCls}" data-type="${type}" data-row="${ri}" data-col="${c.key}"${wkAttr}${clickAttr}>`;
       bHtml += `<div class="cell-val">${val}</div>`;
       bHtml += `</td>`;
     }
