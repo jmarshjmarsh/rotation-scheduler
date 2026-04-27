@@ -317,3 +317,27 @@
   /* Edit icon button on cards */
   .card-edit-btn { cursor: pointer; color: var(--text-muted); font-size: 12px; padding: 1px 5px; background: #f0f4f9; border: 1px solid var(--border); border-radius: 4px; margin-left: 4px; }
   .card-edit-btn:hover { color: var(--primary-light); background: #dde6f2; }
+
+  /* Custom color input styled as a clickable swatch */
+  .legend-swatch-color-input {
+    width: 16px; height: 16px; border-radius: 3px;
+    border: 1px solid rgba(0,0,0,.15);
+    padding: 0; cursor: pointer; flex-shrink: 0;
+    -webkit-appearance: none; appearance: none;
+    background: none;
+  }
+
+  /* Add custom color inline form */
+  .add-color-form {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px;
+  }
+  .add-color-form input[type="color"] {
+    width: 32px; height: 28px; padding: 0;
+    border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+  }
+  .add-color-form input[type="text"] {
+    padding: 4px 8px; border: 1px solid var(--border);
+    border-radius: 5px; font-size: 12px; width: 160px;
+  }
+  .add-color-form input[type="text"]:focus { outline: none; border-color: var(--accent); }

@@ -3,7 +3,7 @@
 An anesthesia residency rotation scheduling web app. Built for Jacob's personal use as chief resident.
 
 ## Repo
-`github.com/jmarshjmarsh/rotation-scheduler` — public, hosted on GitHub Pages.
+`github.com/jmarshjmarsh/rotation-scheduler` — public, hosted on Vercel at `rotation-scheduler.vercel.app`.
 
 ## Stack
 - Vanilla JS + HTML + CSS (no build step, no framework)

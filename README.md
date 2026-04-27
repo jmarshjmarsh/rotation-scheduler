@@ -11,7 +11,7 @@ Open via the GitHub Pages URL or clone and open `index.html` locally. State auto
 - Weekly and daily rotation views
 - 17 configurable rotation rows with drag-and-drop reordering
 - Resident management with class (Intern, CA-1 through CA-4) sorting
-- Color-coded cells (grey/yellow/blue) with configurable rules
+- Color-coded cells with fully configurable rules — built-in grey/yellow/blue plus custom colors
 - Conference schedule overlay with sticky-note tabs above the calendar
 - Weekly → daily auto-population with manual override support
 - Firebase Firestore cloud sync — shared state across all users
@@ -21,6 +21,6 @@ Open via the GitHub Pages URL or clone and open `index.html` locally. State auto
 
 Vanilla JS + HTML + CSS. No build step. Firebase Firestore for cloud sync, localStorage as local fallback.
 
-## GitHub Pages
+## Hosting
 
-Hosted as a GitHub Pages static site.
+Hosted on Vercel at `rotation-scheduler.vercel.app`. Pushes to `main` auto-deploy.

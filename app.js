@@ -13,6 +13,7 @@ var state = {
     yellow: 'busy rotation',
     blue:   'no first-time rotators'
   },
+  customColors: [],  // [{ id, hex, name }] — user-defined colors beyond grey/yellow/blue
   rotations: [
     "Gen, Neuro, NORA",
     "Gen, Neuro, NORA",
@@ -138,6 +139,9 @@ function loadState() {
     yellow: 'busy rotation',
     blue:   'no first-time rotators'
   };
+
+  // Ensure customColors array exists
+  if (!state.customColors) state.customColors = [];
 }
 function exportData() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -232,6 +236,31 @@ const DAY_ABBR = ['M','T','W','Th','F'];
 // ══════════════════════════════════════════════════════
 //  COLOR RULES
 // ══════════════════════════════════════════════════════
+
+function darkenHex(hex, amount) {
+  const r = Math.round(parseInt(hex.slice(1,3), 16) * (1 - amount));
+  const g = Math.round(parseInt(hex.slice(3,5), 16) * (1 - amount));
+  const b = Math.round(parseInt(hex.slice(5,7), 16) * (1 - amount));
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+function renderCustomColorStyles() {
+  let css = '';
+  for (const c of (state.customColors || [])) {
+    const id = c.id;
+    const hex = c.hex;
+    const hover = darkenHex(hex, 0.12);
+    css += `.s-cell.cell-${id}{background:${hex}!important}`;
+    css += `.s-cell.cell-${id}:hover{background:${hover}!important}`;
+    css += `.s-cell.cell-${id}.filled .cell-val{background:rgba(0,0,0,.14);color:#1f2937;font-weight:700}`;
+    css += `.s-cell.cell-${id}.manual-override .cell-val{background:rgba(0,0,0,.2);color:#1f2937}`;
+    css += `.rule-swatch.${id}{background:${hex}}`;
+  }
+  let el = document.getElementById('customColorStyles');
+  if (!el) { el = document.createElement('style'); el.id = 'customColorStyles'; document.head.appendChild(el); }
+  el.textContent = css;
+}
+
 // Convert MM-DD back to a date input value YYYY-MM-DD using the academic year
 function mmddToInputValue(mmdd) {
   const d = resolveRuleDate(mmdd);
@@ -258,24 +287,24 @@ function parseLocalDate(str) {
   return new Date(y, m - 1, d);
 }
 
-// Returns 'grey', 'yellow', 'blue', or null for a cell at (rowIndex, dateRange).
+// Returns a color id ('grey', 'yellow', 'blue', or a custom 'cc_...' id), or null.
 // dateA/dateB span the cell: same date for daily, Mon–Fri for weekly.
-// Priority: grey(3) > yellow(2) > blue(1).
+// Priority: grey(3) > yellow(2) > blue(1) > custom(0).
 function getCellColor(ri, dateA, dateB) {
-  const priority = { grey: 3, yellow: 2, blue: 1 };
-  let best = null;
+  const BUILTIN_PRIORITY = { grey: 3, yellow: 2, blue: 1 };
+  let bestId = null;
+  let bestPriority = -1;
   for (const rule of (state.colorRules || [])) {
-    // Row filter
     if (rule.rows !== 'all' && !rule.rows.includes(ri)) continue;
-    // Date range filter (overlap check: cell range overlaps rule range)
     if (rule.start || rule.end) {
       const s = rule.start ? resolveRuleDate(rule.start) : new Date(0);
       const e = rule.end   ? resolveRuleDate(rule.end)   : new Date(9999, 11, 31);
       if (dateB < s || dateA > e) continue;
     }
-    if (!best || priority[rule.color] > priority[best]) best = rule.color;
+    const p = BUILTIN_PRIORITY[rule.color] !== undefined ? BUILTIN_PRIORITY[rule.color] : 0;
+    if (p > bestPriority) { bestPriority = p; bestId = rule.color; }
   }
-  return best;
+  return bestId;
 }
 
 // ── Settings: Color rule management ──
@@ -308,31 +337,57 @@ function renderColorRulesList() {
 }
 
 function renderColorLegends() {
-  const colors = [
+  const BUILTIN = [
     { key: 'grey',   bg: '#d1d5db' },
     { key: 'yellow', bg: '#fef08a' },
     { key: 'blue',   bg: '#bfdbfe' }
   ];
   const names = state.colorNames || {};
+  const custom = state.customColors || [];
 
-  // Simple legend for schedule tabs
-  const simpleHtml = colors.map(c =>
-    `<div class="legend-item"><div class="legend-swatch" style="background:${c.bg}"></div> ${names[c.key] || c.key}</div>`
-  ).join('');
+  // Simple legend for schedule tabs (built-ins + custom)
+  const simpleHtml = [
+    ...BUILTIN.map(c =>
+      `<div class="legend-item"><div class="legend-swatch" style="background:${c.bg}"></div> ${names[c.key] || c.key}</div>`
+    ),
+    ...custom.map(c =>
+      `<div class="legend-item"><div class="legend-swatch" style="background:${c.hex}"></div> ${c.name || c.id}</div>`
+    )
+  ].join('');
   document.querySelectorAll('.color-legend-simple').forEach(el => { el.innerHTML = simpleHtml; });
 
   // Editable legend for settings panel
   const settingsEl = document.getElementById('colorLegend-settings');
-  if (settingsEl) {
-    settingsEl.innerHTML = colors.map((c, i) =>
-      `<div class="legend-item">
-        <div class="legend-swatch" style="background:${c.bg}"></div>
-        <span class="legend-color-label">${c.key.charAt(0).toUpperCase() + c.key.slice(1)} —</span>
-        <input class="legend-name-input" type="text" value="${names[c.key] || ''}" onblur="saveColorName('${c.key}', this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border:none;border-bottom:1px solid #ccc;background:transparent;font-size:11px;color:var(--text-muted);width:160px;outline:none;padding:0 2px">
-        ${i === 0 ? '<em style="font-size:10px">(overrides yellow &amp; blue)</em>' : ''}
-      </div>`
-    ).join('');
-  }
+  if (!settingsEl) return;
+
+  const builtinRows = BUILTIN.map((c, i) =>
+    `<div class="legend-item">
+      <div class="legend-swatch" style="background:${c.bg}"></div>
+      <span class="legend-color-label">${c.key.charAt(0).toUpperCase() + c.key.slice(1)} —</span>
+      <input class="legend-name-input" type="text" value="${names[c.key] || ''}" onblur="saveColorName('${c.key}', this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border:none;border-bottom:1px solid #ccc;background:transparent;font-size:11px;color:var(--text-muted);width:160px;outline:none;padding:0 2px">
+      ${i === 0 ? '<em style="font-size:10px">(overrides yellow &amp; blue)</em>' : ''}
+    </div>`
+  ).join('');
+
+  const customRows = custom.map(c =>
+    `<div class="legend-item">
+      <input type="color" class="legend-swatch-color-input" value="${c.hex}" onchange="updateCustomColorHex('${c.id}', this.value)" title="Click to change color">
+      <input class="legend-name-input" type="text" value="${c.name || ''}" onblur="saveCustomColorName('${c.id}', this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="border:none;border-bottom:1px solid #ccc;background:transparent;font-size:11px;color:var(--text-muted);width:140px;outline:none;padding:0 2px" placeholder="Color name">
+      <span class="rm" onclick="deleteCustomColor('${c.id}')" title="Delete color" style="font-size:14px;cursor:pointer;color:var(--text-muted);padding:0 4px;margin-left:2px">×</span>
+    </div>`
+  ).join('');
+
+  settingsEl.innerHTML = builtinRows + customRows + `
+    <div style="margin-top:8px">
+      <button class="btn" style="font-size:11px;padding:3px 9px" id="addColorToggleBtn" onclick="toggleAddColorForm()">+ Add Color</button>
+      <div class="add-color-form" id="addColorForm" style="display:none">
+        <input type="color" id="newColorHex" value="#f59e0b" title="Pick a color">
+        <input type="text" id="newColorName" placeholder="Color name (e.g. high risk)">
+        <button class="btn btn-primary" style="font-size:11px;padding:3px 9px" onclick="addCustomColor()">Add</button>
+        <button class="btn" style="font-size:11px;padding:3px 9px" onclick="toggleAddColorForm()">Cancel</button>
+      </div>
+    </div>
+  `;
 }
 
 function saveColorName(color, val) {
@@ -342,9 +397,68 @@ function saveColorName(color, val) {
   state.colorNames[color] = val;
   saveState();
   renderColorLegends();
-  // Also refresh the rule form dropdown if open
   const colorSel = document.getElementById('ruleColor');
   if (colorSel) updateRuleColorOptions();
+}
+
+function toggleAddColorForm() {
+  const form = document.getElementById('addColorForm');
+  const btn  = document.getElementById('addColorToggleBtn');
+  if (!form) return;
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'flex';
+  if (btn) btn.textContent = isOpen ? '+ Add Color' : '✕ Cancel';
+  if (!isOpen) {
+    const hexEl = document.getElementById('newColorHex');
+    const nameEl = document.getElementById('newColorName');
+    if (hexEl) hexEl.value = '#f59e0b';
+    if (nameEl) nameEl.value = '';
+  }
+}
+
+function addCustomColor() {
+  const hex  = (document.getElementById('newColorHex')?.value  || '#cccccc');
+  const name = (document.getElementById('newColorName')?.value || '').trim();
+  if (!name) { alert('Please enter a name for this color.'); return; }
+  if (!state.customColors) state.customColors = [];
+  state.customColors.push({ id: 'cc_' + Date.now(), hex, name });
+  saveState();
+  renderCustomColorStyles();
+  renderColorLegends();
+  updateRuleColorOptions();
+}
+
+function deleteCustomColor(id) {
+  if (!confirm('Delete this color? Rules using it will still reference the color ID (they\'ll just appear unstyled until re-edited).')) return;
+  state.customColors = (state.customColors || []).filter(c => c.id !== id);
+  saveState();
+  renderCustomColorStyles();
+  renderColorLegends();
+  updateRuleColorOptions();
+  renderColorRulesList();
+}
+
+function saveCustomColorName(id, val) {
+  val = val.trim();
+  if (!val) return;
+  const c = (state.customColors || []).find(c => c.id === id);
+  if (!c) return;
+  c.name = val;
+  saveState();
+  renderColorLegends();
+  updateRuleColorOptions();
+}
+
+function updateCustomColorHex(id, hex) {
+  const c = (state.customColors || []).find(c => c.id === id);
+  if (!c) return;
+  c.hex = hex;
+  saveState();
+  renderCustomColorStyles();
+  renderColorLegends();
+  renderColorRulesList();
+  renderTable('weekly');
+  if (document.getElementById('tab-daily').classList.contains('active')) renderTable('daily');
 }
 
 function updateRuleColorOptions() {
@@ -357,7 +471,14 @@ function updateRuleColorOptions() {
     <option value="yellow">Yellow – ${names.yellow || 'busy rotation'}</option>
     <option value="blue">Blue – ${names.blue || 'no first-time rotators'}</option>
   `;
-  sel.value = current;
+  for (const c of (state.customColors || [])) {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name || c.id;
+    sel.appendChild(opt);
+  }
+  if ([...sel.options].some(o => o.value === current)) sel.value = current;
+  else sel.value = 'grey';
 }
 
 function toggleAddRuleForm(ruleToEdit) {
@@ -1010,6 +1131,7 @@ function reorderRotations(from, to) {
 // ══════════════════════════════════════════════════════
 function initAll() {
   buildYearSelector();
+  renderCustomColorStyles();
   renderColorLegends();
   renderTable('weekly');
 }
